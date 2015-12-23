@@ -1,3 +1,12 @@
 {
-	"name": "gymadarasz/xparser"
+	"name": "gymadarasz/xparser",
+	"require-dev": {
+		"gymadarasz/minitest": "dev-master"
+	},
+	"autoload": {
+		"psr-4": {
+			"gymadarasz\\xparser\\": "",
+			"gymadarasz\\xparser\\tests\\": "tests"
+		}
+	}
 }
