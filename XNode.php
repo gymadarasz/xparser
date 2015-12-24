@@ -169,7 +169,7 @@ class XNode {
 		return new XNodeList($this->getElementsByClassArray($class), $this);
 	}	
 
-	public function find($select) {
+	public function find($select, $index = null) {
 		$ret = new XNodeList([], $this);
 		$selects = preg_split('/\s*,\s*/', $select);
 		foreach($selects as $select) {
@@ -247,6 +247,9 @@ class XNode {
 				
 			}
 			$ret->addElementsArray($founds, $this);
+		}
+		if(!is_null($index)) {
+			return $ret->getElement($index);
 		}
 		return $ret;
 	}
