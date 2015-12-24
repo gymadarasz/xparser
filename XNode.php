@@ -267,7 +267,7 @@ class XNode {
 	}
 	
 	public function __toString() {
-		return $this->outer();
+		return $this->outer() . '';
 	}
 	
 	public function __set($name, $value) {
