@@ -55,6 +55,9 @@ class XParserBenchmarks extends MiniTestAbstract {
 		$bench->run(function($google){
 			$html = HtmlDomParser::str_get_html($google);
 			$html->find('title', 0)->innertext('New Title');
+			foreach($html->find('div') as $div) {
+				$div->innertext = 'change';
+			}
 		}, $google);
 		
 		$this->logBench($bench);
@@ -67,6 +70,7 @@ class XParserBenchmarks extends MiniTestAbstract {
 		$bench->run(function($google){
 			$html = new XNode($google);
 			$html->find('title')->inner('New Title');
+			$html->find('div')->inner('change');
 		}, $google);
 		
 		$this->logBench($bench);
