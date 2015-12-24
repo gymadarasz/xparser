@@ -76,4 +76,10 @@ class XNodeList {
 		return $value;
 	}
 
+	public function __invoke(...$args) {
+		foreach($this->getElements() as $element) {
+			$this->elements(...$args);
+		}
+	}
+
 }
