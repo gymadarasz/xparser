@@ -45,34 +45,58 @@ class XParserBenchmarks extends MiniTestAbstract {
 	protected function compare() {
 		$bench = new Ubench;
 		
-		$google = file_get_contents('http://google.com');
+		$url = 'http://madsoft.hu/cv/';
+		$file = 'test.html';
+		
+		if(!file_exists($file)) {
+			$htmlstr = file_get_contents($url);
+			file_put_contents($file, $htmlstr);
+		}
+		$htmlstr = file_get_contents($file);
 		
 		
 		$this->log('', true);
 		
-		$this->log('Measuring Simple HTML DOM Parser...');
-		
-		$bench->run(function($google){
-			$html = HtmlDomParser::str_get_html($google);
+		$this->log('Measuring Simple HTML DOM Parser...');		
+		$result = $bench->run(function($htmlstr){
+			$html = HtmlDomParser::str_get_html($htmlstr);
 			$html->find('title', 0)->innertext('New Title');
 			foreach($html->find('div') as $div) {
 				$div->innertext = 'change';
 			}
-		}, $google);
-		
+			return $html->__toString();
+		}, $htmlstr);
+		//$this->log('distance: ' . similar_text($htmlstr, $result));
 		$this->logBench($bench);
 		
 		$this->log('', true);
 		
 		
-		$this->log('Measuring XParser...');
-		
-		$bench->run(function($google){
-			$html = new XNode($google);
+		$this->log('Measuring XParser...');		
+		$result = $bench->run(function($htmlstr){
+			$html = new XNode($htmlstr);
 			$html->find('title')->inner('New Title');
 			$html->find('div')->inner('change');
-		}, $google);
+			return $html->__toString();
+		}, $htmlstr);
+		//$this->log('distance: ' . similar_text($htmlstr, $result));
+		$this->logBench($bench);
 		
+		$this->log('', true);
+		
+		
+		$this->log('Measuring Ganon...');		
+		$result = $bench->run(function($htmlstr){
+			$html = str_get_dom($htmlstr);
+			foreach($html('title') as $title) {
+				$title->setInnerText('New Title');
+			}
+			foreach($html('div') as $div) {
+				$div->setInnerText('change');
+			}
+			return $html->__toString();
+		}, $htmlstr);
+		//$this->log('distance: ' . similar_text($htmlstr, $result));
 		$this->logBench($bench);
 		
 		$this->log('', true);
@@ -80,10 +104,10 @@ class XParserBenchmarks extends MiniTestAbstract {
 		
 	}
 	
-	private function logBench(Ubench $banch) {
-		$this->log("Time:\t" . $banch->getTime());
-		$this->log("Memory usage:\t" . $banch->getMemoryUsage());
-		$this->log("Memory peak:\t" . $banch->getMemoryPeak());
+	private function logBench(Ubench $bench) {
+		$this->log("Time:\t\t" . $bench->getTime() . "\t" . $bench->getTime(true));
+		$this->log("Memory usage:\t" . $bench->getMemoryUsage() . "\t" . $bench->getMemoryUsage(true));
+		$this->log("Memory peak:\t" . $bench->getMemoryPeak() . "\t" . $bench->getMemoryPeak(true));
 	}
 	
 }
