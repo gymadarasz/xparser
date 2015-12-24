@@ -87,6 +87,12 @@ class XParserTests extends MiniTestAbstract {
 		$after = $tpl->find('html body input')->attr('value');
 		$this->equ($before, 'my value here..');
 		$this->equ($after, 'elembe!');
+		
+		$before = $tpl->outer();
+		$this->equ(count($tpl('#hello02')->getElements()), 0);
+		$after = $tpl->outer();
+		$this->equ($before, $after);
+		
 	}
 	
 }
