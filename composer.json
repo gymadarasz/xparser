@@ -1,12 +1,18 @@
 {
 	"name": "gymadarasz/xparser",
-	"require-dev": {
-		"gymadarasz/minitest": "dev-master"
-	},
+	"minimum-stability": "dev",
 	"autoload": {
 		"psr-4": {
 			"gymadarasz\\xparser\\": "",
 			"gymadarasz\\xparser\\tests\\": "tests"
 		}
+	},
+	"require-dev": {
+		"gymadarasz/minitest": "dev-master",
+		"voku/simple_html_dom": "^1.7",
+		"devster/ubench": "^1.2"
+	},
+	"require": {
+		"wangoviridans/ganon": "dev-master"
 	}
 }

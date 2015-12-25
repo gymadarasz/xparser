@@ -2,9 +2,9 @@
 
 namespace gymadarasz\xparser;
 
-class XNodeList {
+class XNodeList implements \Iterator {
 
-	private $elements = [];
+	private $__elements = [];
 
 
 	public function __construct($elements = [], XNode &$source = null) {
@@ -16,11 +16,11 @@ class XNodeList {
 				throw new XParserException('Invalid element type: ' . gettype($element));
 			}
 		}
-		$this->elements = $elements;
+		$this->__elements = $elements;
 	}
 
 	public function addElement(XNode $elem) {
-		$this->elements[] = $elem;
+		$this->__elements[] = $elem;
 	}
 	
 	public function addElementsArray($elems = [], &$source) {
@@ -30,16 +30,16 @@ class XNodeList {
 	}
 
 	public function getElements() {
-		return $this->elements;
+		return $this->__elements;
 	}
-
+	
 	public function getElement($index = 0) {
-		return $this->elements[$index];
+		return $this->__elements[$index];
 	}
 
 	public function __call($name, $arguments) {
 		$ret = [];
-		foreach($this->elements as $elem) {
+		foreach($this->__elements as $elem) {
 			if(method_exists($elem, $name)) {
 				$results = call_user_func_array([$elem, $name], $arguments);
 				if(is_array($results)) {
@@ -78,8 +78,35 @@ class XNodeList {
 
 	public function __invoke(...$args) {
 		foreach($this->getElements() as $element) {
-			$this->elements($args);
+			$this->__elements($args);
 		}
 	}
+	
+	// todo: iterable ------
+	
+    public function rewind() {
+        reset($this->__elements);
+    }
+  
+    public function current() {
+        $var = current($this->__elements);
+        return $var;
+    }
+  
+    public function key() {
+        $var = key($this->__elements);
+        return $var;
+    }
+  
+    public function next() {
+        $var = next($this->__elements);
+        return $var;
+    }
+  
+    public function valid() {
+        $key = key($this->__elements);
+        $var = ($key !== NULL && $key !== FALSE);
+        return $var;
+    }
 
 }
