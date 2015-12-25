@@ -10,9 +10,7 @@
 	"require-dev": {
 		"gymadarasz/minitest": "dev-master",
 		"voku/simple_html_dom": "^1.7",
+		"wangoviridans/ganon": "dev-master",
 		"devster/ubench": "^1.2"
-	},
-	"require": {
-		"wangoviridans/ganon": "dev-master"
 	}
 }
