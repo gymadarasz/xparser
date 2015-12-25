@@ -4,23 +4,23 @@ namespace gymadarasz\xparser;
 
 class XNode {
 	
-	private $xhtml = null;
+	private $__xhtml = null;
 	
-	private $source = null;
+	private $__source = null;
 	
-	private $temps = [];
+	private $__temps = [];
 	
 	public function __construct($xhtml = null, XNode &$source = null) {
 		$this->outer($xhtml);
-		$this->source = &$source;
+		$this->__source = &$source;
 	}
-
+	
 
 	private function replace($search, $replace) {
 		// replace only first occurrence cause more than one are in parent then it have to be a list instead an element
-		$pos = strpos($this->outer(null, false), $search);
+		$pos = strpos($this->__xhtml, $search);
 		if ($pos !== false) {
-			$this->outer(substr_replace($this->outer(null, false), $replace, $pos, strlen($search)));
+			$this->__xhtml = substr_replace($this->__xhtml, $replace, $pos, strlen($search));
 		}
 		return $this;
 	}
@@ -28,20 +28,17 @@ class XNode {
 	public function outer($xhtml = null, $restore = true) {
 		if(is_null($xhtml)) {
 			if($restore) {
-				$xhtml = $this->xhtml;
-				$outer = $this->restore()->xhtml;
-				$this->xhtml = $xhtml;
-				return $outer;
+				return $this->restored();
 			}
 			else {
-				return $this->xhtml;
+				return $this->__xhtml;
 			}
 		}
 		else {
-			if(!is_null($this->source) && !is_null($this->xhtml)) {
-				$this->source->replace($this->xhtml, $xhtml);
+			if(!is_null($this->__source) && !is_null($this->__xhtml)) {
+				$this->__source->replace($this->__xhtml, $xhtml);
 			}
-			$this->xhtml = $xhtml;
+			$this->__xhtml = $xhtml;
 			$this->cleanup();
 			return $this;
 		}
@@ -49,15 +46,21 @@ class XNode {
 
 	public function inner($xhtml = null) {
 		if(is_null($xhtml)) {
-			if($this->outer(null, false)) {
-				preg_match('/<\w+\b.*?>([\w\W]*)<\/\w+>/is', $this->outer(null, false), $match);
+			if($this->__xhtml) {
+				preg_match('/<\w+\b.*?>([\w\W]*)<\/\w+>/is', $this->__xhtml, $match);
 				return $match[1];
 			}
 			trigger_error('XHTML Parse Error: A requested element has no inner text.', E_USER_NOTICE);
 			return null;
 		}
 		else {
-			$this->outer(preg_replace('/(<\w+\b.*?>)([\w\W]*)(<\/\w+>)/is', '$1' . $xhtml . '$3', $this->outer(null, false)));
+			$__xhtml = $this->__xhtml;
+			
+			$this->__xhtml = preg_replace('/(<\w+\b.*?>)([\w\W]*)(<\/\w+>)/is', '$1' . $xhtml . '$3', $this->__xhtml);
+			
+			if(!is_null($this->__source)) {
+				$this->__source->replace($__xhtml, $this->__xhtml);
+			}
 			return $this;
 		}
 	}
@@ -65,21 +68,21 @@ class XNode {
 
 	private function getPossibleTags() {
 		// todo : order the result by occurrence rate for more performance!
-		preg_match_all('/<(\w+)\b/si', $this->outer(null, false), $matches);
+		preg_match_all('/<(\w+)\b/si', $this->__xhtml, $matches);
 		return array_unique($matches[1]);
 	}
 	
 	private function getElementFirst($tag = null, $attr = '\w*', $value = '\w*') {
 		return $this->getElementsArray($tag, $attr, $value, true);
 	}
-
+	
 	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false) {
 	
 		$founds = [];
 		
 		if(is_null($tag)) {			
 			foreach($this->getPossibleTags() as $tag) {
-				$founds = array_merge($founds, $this->getElementsArray($tag, $attr, $value));
+				$founds = array_merge($founds, $this->getElementsArray($tag, $attr, $value, $one));
 			}
 		}
 		else {
@@ -95,36 +98,36 @@ class XNode {
 				
 				if($simple) {
 					$regex = '/<' . $tag . '\b[^>]*[^>\/]*?>/is';
-					preg_match_all($regex, $this->outer(null, false), $matches);
+					preg_match_all($regex, $this->__xhtml, $matches);
 					$founds = $matches[0];
 					if($one && $founds) return [$founds[0]];
 				}
 				
 				$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\/>/is';
-				preg_match_all($regex, $this->outer(null, false), $matches);
+				preg_match_all($regex, $this->__xhtml, $matches);
 				$founds = $matches[0];
 				if($one && $founds) return [$founds[0]];
 
 				$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\>.*?<\/' . $tag . '>/is';
-				preg_match_all($regex, $this->outer(null, false), $matches);
+				preg_match_all($regex, $this->__xhtml, $matches);
 				$founds = array_merge($founds, $matches[0]);
 				if($one && $founds) return [$founds[0]];
 			}
 			
 			if($simple) {
 				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>/is';
-				preg_match_all($regex, $this->outer(null, false), $matches);
+				preg_match_all($regex, $this->__xhtml, $matches);
 				$founds = array_merge($founds, $matches[0]);
 				if($one && $founds) return [$founds[0]];				
 			}
 
 			$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?\/>/is';
-			preg_match_all($regex, $this->outer(null, false), $matches);
+			preg_match_all($regex, $this->__xhtml, $matches);
 			$founds = array_merge($founds, $matches[0]);
 			if($one && $founds) return [$founds[0]];
 
 			$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
-			preg_match_all($regex, $this->outer(null, false), $matches);
+			preg_match_all($regex, $this->__xhtml, $matches);
 			foreach($matches[0] as $match) {
 				if(preg_match_all('/<' . $tag . '\b/', $match) == 1) {
 					if($one && $founds) return [$match];
@@ -135,7 +138,7 @@ class XNode {
 			if(!$single) {
 				
 				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*?<\/' . $tag . '>/is';
-				preg_match_all($regex, $this->outer(null, false), $matches);
+				preg_match_all($regex, $this->__xhtml, $matches);
 
 				$valids = array_keys($matches[0]);
 
@@ -270,59 +273,74 @@ class XNode {
 	public function attr($attr, $value = null) {
 		$regex = '/(^[^>]*\b' . $attr . '\s*=\s*)"(.*?)"/is';
 		if(is_null($value)) {
-			preg_match($regex, $this->outer(null, false), $matches);
+			preg_match($regex, $this->__xhtml, $matches);
 			return isset($matches[2]) ? $matches[2] : null;
 		}
 		else {
-			$this->outer(preg_replace($regex, '$1"' . $value . '"', $this->outer(null, false)), 1);
+			$xhtml = $this->__xhtml;
+			
+			$this->__xhtml = preg_replace($regex, '$1"' . $value . '"', $this->__xhtml, 1);
+			
+			if(!is_null($this->__source)) {
+				$this->__source->replace($xhtml, $this->__xhtml);
+			}			
 			return $this;
 		}		
 	}
 	
 	private function cleanup($removeComments = false) {
-		if(is_null($this->source)) {
-			$outer = $this->xhtml;
+		if(is_null($this->__source)) {
+			$outer = $this->__xhtml;
 			$regex = '/<\!--(.*?)-->/s';
 			if($removeComments) {
 				$outer = preg_replace($regex, '', $outer);
 			}
 			else {
 				preg_match_all($regex, $outer, $matches);
-				$this->temps = $matches[0];
+				$this->__temps = $matches[0];
 			}
 
-			$this->temps = array_merge($this->temps, $this->getElementsArray('script'), $this->getElementsArray('style'));
+			//$this->__temps = array_merge($this->__temps, $this->getElementsArray('script'), $this->getElementsArray('style'));
 
-			foreach($this->temps as $key => $temp) {
+			foreach($this->__temps as $key => $temp) {
 				$outer = str_replace($temp, '[XPARSER TEMP #' . $key . ']', $outer);
 			}
 
-			$this->xhtml = $outer;
+			$this->__xhtml = $outer;
 		}
 		return $this;
 	}
 	
-	private function restore() {
-		if(is_null($this->source)) {
-			$outer = $this->xhtml;
-			foreach($this->temps as $key => $temp) {
-				$outer = preg_replace('/\[XPARSER TEMP \#' . $key . '\]/', $temp, $outer);
+	private function restored() {
+		$__xhtml = $this->__xhtml;
+		if(is_null($this->__source)) {
+			foreach($this->__temps as $key => $temp) {
+				$__xhtml = preg_replace('/\[XPARSER TEMP \#' . $key . '\]/', $temp, $__xhtml);
 			}
-			$this->xhtml = $outer;
 		}
-		return $this;
+		return $__xhtml;
 	}
 	
 	public function __toString() {
-		return $this->outer(null, false) . '';
+		return $this->outer() . '';
 	}
 	
 	public function __set($name, $value) {
-		$this->attr($name, $value);
+		if(!property_exists($this, $name)) {
+			$this->attr($name, $value);
+		}
+		else {
+			$this->$name = $value;
+		}
 	}
 	
 	public function __get($name) {
-		$value = $this->attr($name);
+		if(!property_exists($this, $name)) {
+			$value = $this->attr($name);
+		}
+		else {
+			$value = $this->$name;
+		}
 		return $value;
 	}
 
