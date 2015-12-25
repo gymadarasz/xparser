@@ -58,13 +58,27 @@ class XParserBenchmarks extends MiniTestAbstract {
 		$this->log('', true);
 		
 		$this->log('Measuring Simple HTML DOM Parser...');		
-		$result = $bench->run(function($htmlstr){
+		$resultsSimpleHtmlDomParser = $bench->run(function($htmlstr){
+			$results = [];
+			
 			$html = HtmlDomParser::str_get_html($htmlstr);
 			$html->find('title', 0)->innertext('New Title');
 			foreach($html->find('div') as $div) {
 				$div->innertext = 'change';
 			}
-			return $html->__toString();
+			$results[1] = $html->__toString();
+						
+			$tpl = HtmlDomParser::str_get_html(file_get_contents('tests/templated-retrospect/index.html'));
+			foreach($tpl->find('link') as $elem) {
+				$elem->href = '//localhost/xparser/tests/templated-retrospect/' . $elem->href;
+			}
+			foreach($tpl->find('img, script') as $elem) {
+				$elem->src = '//localhost/xparser/tests/templated-retrospect/' . $elem->src;
+			}
+			$results[2] = $tpl->__toString();
+			
+			return $results;
+			
 		}, $htmlstr);
 		//$this->log('distance: ' . similar_text($htmlstr, $result));
 		$this->logBench($bench);
@@ -73,11 +87,25 @@ class XParserBenchmarks extends MiniTestAbstract {
 		
 		
 		$this->log('Measuring XParser...');		
-		$result = $bench->run(function($htmlstr){
+		$resultsXParser = $bench->run(function($htmlstr){
+			$results = [];
+			
 			$html = new XNode($htmlstr);
 			$html->find('title')->inner('New Title');
 			$html->find('div')->inner('change');
-			return $html->__toString();
+			$results[1] = $html->__toString();
+						
+			$tpl = new XNode(file_get_contents('tests/templated-retrospect/index.html'));
+			foreach($tpl('link') as $elem) {
+				$elem->href = '//localhost/xparser/tests/templated-retrospect/' . $elem->href;
+			}
+			foreach($tpl('img, script')->getElements() as $elem) {
+				$elem->src = '//localhost/xparser/tests/templated-retrospect/' . $elem->src;
+			}
+			$results[2] = $tpl->__toString();
+			
+			return $results;
+		
 		}, $htmlstr);
 		//$this->log('distance: ' . similar_text($htmlstr, $result));
 		$this->logBench($bench);
@@ -86,7 +114,7 @@ class XParserBenchmarks extends MiniTestAbstract {
 		
 		
 		$this->log('Measuring Ganon...');		
-		$result = $bench->run(function($htmlstr){
+		$resultsGanon = $bench->run(function($htmlstr){
 			$html = str_get_dom($htmlstr);
 			foreach($html('title') as $title) {
 				$title->setInnerText('New Title');
@@ -94,10 +122,29 @@ class XParserBenchmarks extends MiniTestAbstract {
 			foreach($html('div') as $div) {
 				$div->setInnerText('change');
 			}
-			return $html->__toString();
+			$results[1] = $html->__toString();
+			
+			$tpl = new XNode(file_get_contents('tests/templated-retrospect/index.html'));		
+			foreach($tpl('link') as $elem) {
+				$elem->href = '//localhost/xparser/tests/templated-retrospect/' . $elem->href;
+			}
+			foreach($tpl('img, script')->getElements() as $elem) {
+				$elem->src = '//localhost/xparser/tests/templated-retrospect/' . $elem->src;
+			}
+			$results[2] = $tpl->__toString();
+			
+			return $results;
+			
 		}, $htmlstr);
 		//$this->log('distance: ' . similar_text($htmlstr, $result));
 		$this->logBench($bench);
+		
+		
+		$this->log('', true);
+		
+		$this->log('Simple HTML DOM Parser vs Ganon distance: ' . similar_text($resultsSimpleHtmlDomParser[2], $resultsGanon[2]));
+		$this->log('Simple HTML DOM Parser vs XParser distance: ' . similar_text($resultsSimpleHtmlDomParser[2], $resultsXParser[2]));
+		$this->log('Ganon vs XParser distance: ' . similar_text($resultsGanon[2], $resultsXParser[2]));
 		
 		$this->log('', true);
 		$this->log('', true);
