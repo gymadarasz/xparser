@@ -36,7 +36,7 @@ and:
 
 ```php
 <?php
-include 'vendo/autoload.php';
+include 'vendor/autoload.php';
 
 // load a DOM root form a string or file/url
 $x = new XNode(file_get_contents('http://your-important-document-or-template.com'));
