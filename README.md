@@ -6,25 +6,25 @@ or you like simple_html_dom or Ganon you will love this smart library!
 ### Why you sould use it? 
 ### - benchmark:
 ```
-  Measuring Simple HTML DOM Parser...
-  Time:		442ms	0.44200015068054
-  Memory usage:	2.00Mb	2097152
-  Memory peak:	2.00Mb	2097152
-
-  Measuring XParser...
-  Time:		29ms	0.029000043869019
-  Memory usage:	2.25Mb	2359296
-  Memory peak:	2.25Mb	2359296
-
-  Measuring Ganon...
-  Time:		945ms	0.9449999332428
-  Memory usage:	5.00Mb	5242880
-  Memory peak:	5.00Mb	5242880
-  
-  Symfony CSS Selector combined with DOMDocument and DOMXPath...
-  Time:		53ms	0.052999973297119
-  Memory usage:	5.25Mb	5505024
-  Memory peak:	5.25Mb	5505024  
+[2015-12-26 15:50:09] Measuring Simple HTML DOM Parser...
+[2015-12-26 15:50:09] Time:		316ms	0.31599998474121
+[2015-12-26 15:50:09] Memory usage:	2.00Mb	2097152
+[2015-12-26 15:50:09] Memory peak:	2.00Mb	2097152
+[2015-12-26 15:50:09] 
+[2015-12-26 15:50:09] Measuring XParser...
+[2015-12-26 15:50:09] Time:		31ms	0.030999898910522
+[2015-12-26 15:50:09] Memory usage:	2.25Mb	2359296
+[2015-12-26 15:50:09] Memory peak:	2.25Mb	2359296
+[2015-12-26 15:50:09] 
+[2015-12-26 15:50:09] Measuring Ganon...
+[2015-12-26 15:50:10] Time:		933ms	0.93300008773804
+[2015-12-26 15:50:10] Memory usage:	5.25Mb	5505024
+[2015-12-26 15:50:10] Memory peak:	5.25Mb	5505024
+[2015-12-26 15:50:10] 
+[2015-12-26 15:50:10] Symfony CSS Selector combined with DOMDocument and DOMXPath...
+[2015-12-26 15:50:10] Time:		53ms	0.052999973297119
+[2015-12-26 15:50:10] Memory usage:	5.25Mb	5505024
+[2015-12-26 15:50:10] Memory peak:	5.25Mb	5505024 
 ```
 and:
 - PHP 5.5
