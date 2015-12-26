@@ -20,6 +20,11 @@ or you like simple_html_dom or Ganon you will love this smart library!
   Time:		945ms	0.9449999332428
   Memory usage:	5.00Mb	5242880
   Memory peak:	5.00Mb	5242880
+  
+  Symfony CSS Selector combined with DOMDocument and DOMXPath...
+  Time:		53ms	0.052999973297119
+  Memory usage:	5.25Mb	5505024
+  Memory peak:	5.25Mb	5505024  
 ```
 and:
 - PHP 5.5
