@@ -129,15 +129,15 @@ class XNode {
 			$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
 			preg_match_all($regex, $this->__xhtml, $matches);
 			foreach($matches[0] as $match) {
-				if(preg_match_all('/<' . $tag . '\b/', $match) == 1) {
-					if($one && $founds) return [$match];
+				if(preg_match_all('/<' . $tag . '\b/', $match) == 1) {					
 					$founds[] = $match;
+					if($one && $founds) return [$match];
 				}
 			}
 
 			if(!$single) {
 				
-				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*?<\/' . $tag . '>/is';
+				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
 				preg_match_all($regex, $this->__xhtml, $matches);
 
 				$valids = array_keys($matches[0]);
