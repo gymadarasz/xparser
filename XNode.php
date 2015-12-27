@@ -43,12 +43,16 @@ class XNode {
 			return $this;
 		}
 	}
+	
+	private static function getInner($xhtml) {
+		preg_match('/<\w+\b.*?>([\w\W]*)<\/\w+>/is', $xhtml, $match);
+		return $match[1];
+	}
 
 	public function inner($xhtml = null) {
 		if(is_null($xhtml)) {
 			if($this->__xhtml) {
-				preg_match('/<\w+\b.*?>([\w\W]*)<\/\w+>/is', $this->__xhtml, $match);
-				return $match[1];
+				return self::getInner($this->__xhtml);
 			}
 			trigger_error('XHTML Parse Error: A requested element has no inner text.', E_USER_NOTICE);
 			return null;
@@ -108,7 +112,7 @@ class XNode {
 				$founds = $matches[0];
 				if($one && $founds) return [$founds[0]];
 
-				$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\>.*?<\/' . $tag . '>/is';
+				$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\>.*<\/' . $tag . '>/is';
 				preg_match_all($regex, $this->__xhtml, $matches);
 				$founds = array_merge($founds, $matches[0]);
 				if($one && $founds) return [$founds[0]];
@@ -129,9 +133,11 @@ class XNode {
 			$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
 			preg_match_all($regex, $this->__xhtml, $matches);
 			foreach($matches[0] as $match) {
-				if(preg_match_all('/<' . $tag . '\b/', $match) == 1) {					
-					$founds[] = $match;
+				if(preg_match_all('/<' . $tag . '\b/', $match, $inmatch) == 1) {										
 					if($one && $founds) return [$match];
+					if(!in_array($match, $founds)) {
+						$founds[] = $match;
+					}
 				}
 			}
 
@@ -255,10 +261,15 @@ class XNode {
 				
 				if(isset($words[$wkey+1])) {
 					$rest = implode(' ', array_slice($words, $wkey+1));
-					$foundedElements = new XNodeList($founds, $this);				
-					foreach($foundedElements->find($rest) as $subElement) {
-						$ret->addElement($subElement);
+					foreach($founds as $found) {
+						$inner = self::getInner($found);
+						$innerElement = new XNode($inner, $this);
+						$restElements = $innerElement->find($rest);
+						foreach($restElements as $restElement) {
+							$ret->addElement($restElement);
+						}
 					}
+					return $ret;
 				}
 				
 			}

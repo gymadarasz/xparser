@@ -37,8 +37,62 @@ use gymadarasz\xparser\XNode;
 class XParserTests extends MiniTestAbstract {
 	
 	public function run() {
+		$this->start('test4');
+		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	public function test4() {
+		$x = new XNode('
+                  <div class="hello2"></div>
+                ');
+		$divs = $x->find('div');
+		$this->equ(count($divs), 1);
+		
+		
+$x = new XNode(
+'<html>
+    <head>
+        <title>Test page</title>
+    </head>
+    <body>
+                <div id="hello1" class="message">
+                  <div class="hello2"></div>
+                </div>
+    </body>
+</html>');
+
+
+		$good = '<div class="hello2"></div>';
+		$inner = $x->find('#hello1 div')->outer();
+
+		$this->equ($good, $inner);
+	}
+	
+	public function test3() {
+$x = new XNode(
+'<html>
+    <head>
+        <title>Test page</title>
+    </head>
+    <body>
+                <div id="hello1" class="message">
+                    <div>
+                      <span>
+                        ho
+                      </span>
+                    </div>
+                </div>
+    </body>
+</html>');
+
+		$good = '
+                        ho
+                      ';
+        $inner = $x->find('#hello1 > span')->inner();
+
+		$this->equ($good, $inner);
 	}
 	
 	public function test2() {
