@@ -147,7 +147,7 @@ class XNode {
 				preg_match_all($regex, $this->__xhtml, $matches);
 
 				$valids = array_keys($matches[0]);
-
+				
 				for($mkey=0; $mkey<count($matches[0]); $mkey++) {
 					if(in_array($mkey, $valids)) {
 						foreach ($founds as $found) {
@@ -183,7 +183,11 @@ class XNode {
 	}
 
 	private function getElementsByClassArray($class) {
-		$results = $this->getElementsArray(null, 'class', '[\w\s]*\b' . $class . '\b[\w\s]*');
+		return $this->getElementsByTagAndClassArray(null, $class);
+	}
+	
+	private function getElementsByTagAndClassArray($tag, $class) {
+		$results = $this->getElementsArray($tag, 'class', '[\w\s]*\b' . $class . '\b[\w\s]*');
 		return $results;
 	}
 
@@ -227,9 +231,9 @@ class XNode {
 						$founds = array_merge($founds, $this->getElementsArray($tag, 'id', $id));
 					}
 				}
-				else if(!$ids && $classes) {
+				else if(!$ids && $classes) {					
 					foreach($classes as $class) {
-						$foundsByClass[$class] = $this->getElementsByClassArray($class);
+						$foundsByClass[$class] = $this->getElementsByTagAndClassArray($tag, $class);
 					}				
 					if(count($foundsByClass)>1) {
 						$founds = array_merge($founds, call_user_func_array('array_intersect', $foundsByClass));
