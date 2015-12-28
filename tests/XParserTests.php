@@ -51,7 +51,7 @@ class XParserTests extends MiniTestAbstract {
 		$this->equ(count($divs), 1);
 		
 		
-$x = new XNode(
+		$x = new XNode(
 '<html>
     <head>
         <title>Test page</title>
@@ -65,9 +65,37 @@ $x = new XNode(
 
 
 		$good = '<div class="hello2"></div>';
-		$inner = $x->find('#hello1 div')->outer();
+		$inner = $x->find('#hello1 div')->outer();		
 
 		$this->equ($good, $inner);
+		
+		$x = new XNode(
+'<html>
+    <head>
+        <title>Test page</title>
+    </head>
+    <body>
+                <div id="hello1" class="message">
+                  <div class="hello2"></div>
+                </div>
+    </body>
+</html>');		
+		$hello1OuterGood = '<div id="hello1" class="message">
+                  <div class="hello2"></div>
+                </div>';
+		$hello1InnerTrimmedGood = '<div class="hello2"></div>';
+		$hello2OuterGood = $hello1InnerTrimmedGood;
+		
+		$hello1Outer = $x->find('#hello1')->outer();
+		$hello1InnerTrimmed = trim($x->find('#hello1')->inner());
+		$hello1DivOuter = $x->find('#hello1 div')->outer();
+		$hello2Outer = $x->find('.hello2')->outer();
+		
+		$this->equ($hello1OuterGood, $hello1Outer);
+		$this->equ($hello1InnerTrimmedGood, $hello1InnerTrimmed);
+		$this->equ($hello2OuterGood, $hello2Outer);
+		$this->equ($hello2Outer, $hello1InnerTrimmed);
+		$this->equ($hello1DivOuter, $hello2Outer);
 	}
 	
 	public function test3() {
