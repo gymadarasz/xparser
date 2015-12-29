@@ -82,6 +82,7 @@ class XNode {
 	
 	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false) {
 	
+		$max = 20; // todo: measure the correction
 		$founds = [];
 		
 		if(is_null($tag)) {
@@ -138,10 +139,10 @@ class XNode {
 
 				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
 				if(preg_match($regex, $this->__xhtml, $matches)) {
-					if(self::isValidClosure($matches[0], true)) {
-						if($one) return [$matches[0]];
-						if(!in_array($matches[0], $founds)) {
-							$founds[] = $matches[0];
+				if(self::isValidClosure($matches[0], true)) {
+					if($one) return [$matches[0]];
+					if(!in_array($matches[0], $founds)) {
+						$founds[] = $matches[0];
 						}
 					}
 				}
@@ -150,20 +151,30 @@ class XNode {
 
 					$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
 					if(preg_match($regex, $this->__xhtml, $matches)) {
-						// todo : duplicated code, separate this for an other function
-						if(self::isValidClosure($matches[0], true)) {
+					// todo : duplicated code, separate this for an other function
+					if(self::isValidClosure($matches[0], true)) {
+						if(!in_array($matches[0], $founds)) {
+							if($one) return [$matches[0]];
 							if(!in_array($matches[0], $founds)) {
-								if($one) return [$matches[0]];
-								if(!in_array($matches[0], $founds)) {
-									$founds[] = $matches[0];
+								$founds[] = $matches[0];
 								}
 							}
 						}
 
 						$x = new XNode(substr($matches[0], 1));
-						$founds = array_merge($founds, $x->getElementsArray($tag, $attr, $value, $one));
+						$more = $x->getElementsArray($tag, $attr, $value, $one);
+						$founds = array_merge($founds, $more);
+						if(count($founds) >= $max) {
+							throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
+						}
+
 						$x = new XNode(substr($matches[0], 0, -1));
-						$founds = array_merge($founds, $x->getElementsArray($tag, $attr, $value, $one));
+						$more = $x->getElementsArray($tag, $attr, $value, $one);
+						$founds = array_merge($founds, $more);
+						if(count($founds) >= $max) {
+							throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
+						}
+
 					}
 
 				}
