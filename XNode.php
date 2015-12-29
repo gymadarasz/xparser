@@ -84,7 +84,7 @@ class XNode {
 	
 		$founds = [];
 		
-		if(is_null($tag)) {			
+		if(is_null($tag)) {
 			foreach($this->getPossibleTags() as $tag) {
 				$founds = array_merge($founds, $this->getElementsArray($tag, $attr, $value, $one));
 			}
@@ -126,7 +126,7 @@ class XNode {
 				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>/is';
 				preg_match_all($regex, $this->__xhtml, $matches);
 				$founds = array_merge($founds, $matches[0]);
-				if($one && $founds) return [$founds[0]];				
+				if($one && $founds) return [$founds[0]];
 			}
 			else {
 
@@ -150,6 +150,7 @@ class XNode {
 
 					$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
 					if(preg_match($regex, $this->__xhtml, $matches)) {
+						// todo : duplicated code, separate this for an other function
 						if(self::isValidClosure($matches[0], true)) {
 							if(!in_array($matches[0], $founds)) {
 								if($one) return [$matches[0]];
@@ -159,9 +160,9 @@ class XNode {
 							}
 						}
 
-						$x = new XNode(substr($matches[0], 1)); 
+						$x = new XNode(substr($matches[0], 1));
 						$founds = array_merge($founds, $x->getElementsArray($tag, $attr, $value, $one));
-						$x = new XNode(substr($matches[0], 0, -1)); 
+						$x = new XNode(substr($matches[0], 0, -1));
 						$founds = array_merge($founds, $x->getElementsArray($tag, $attr, $value, $one));
 					}
 
@@ -171,21 +172,38 @@ class XNode {
 			
 		}
 
+		// may array_merge function not necessary...
 		$founds = array_unique($founds);
 		return $founds;
 	}
 	
-	private function isValidClosure($xhtml, $onlyone = false) {
+	private static function isValidClosure($xhtml, $onlyone = false) {
+		$simples = ['\!doctype', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+		$_simples = implode('|', $simples);		
 		if($open = preg_match_all('/<\w+\b/i', $xhtml)) {
+			$simpleTags = preg_match_all('/' . $_simples . '/i', $xhtml);
+			$open -= $simpleTags;
 			$close = preg_match_all('/<\/\w+>/i', $xhtml);
 			if($open == $close && $open !== false) {
 				
-				if($onlyone) {  // todo : may dont have to check for "only one needed" if every each case we'll need it
+				if($onlyone) {  // todo : may dont have to check for "only one needed" if every case we'll need it
 					$all = preg_match_all('/(<\w+.*?>|<\/\w+>)/', $xhtml, $matches);
 					$deep = 0;
+					$max = 0;
+					$limit = 100;
 					$end = count($matches[0])-1;
 					for($i=0; $i<$end; $i++) {
-						$matches[0][$i][1] == '/' ? $deep-- : $deep++;
+						if($matches[0][$i][1] == '/') {
+							$deep--;
+						}
+						else {
+							$deep++;
+							$max = $deep;
+							if($max>$limit) {
+								throw new XParserException('Too deep DOM tree selection, maximum deep is ' . $limit. ', please change your query to a more definitely selector.');
+								//return false;
+							}
+						}
 						if($deep==0) {
 							return false;
 						}
@@ -193,6 +211,7 @@ class XNode {
 					if($deep!=1) {
 						return false;
 					}
+					return $max;
 				}
 						
 				return true;
