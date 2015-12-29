@@ -37,10 +37,110 @@ use gymadarasz\xparser\XNode;
 class XParserTests extends MiniTestAbstract {
 	
 	public function run() {
+		$this->start('test5');
 		$this->start('test4');
 		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	public function test5() {
+		
+		$x = new XNode('<div class="hello2">
+							  2
+							</div>');
+		$divs = $x->find('div.hello2')->getElements();
+		$result = count($divs);
+		$good = 1;
+		$this->equ($result, $good, 'pre-test #1');
+		
+		
+		$x = new XNode('
+						  <div class="hello2">
+							
+						</div>');
+		$divs = $x->find('div.hello2')->getElements();
+		$result = count($divs);
+		$good = 1;
+		$this->equ($result, $good, 'pre-test #2');
+		
+		
+		$x = new XNode('
+						  <div class="hello2">
+							<div class="hello2">
+							  2
+							</div>
+						</div>');
+		$divs = $x->find('div.hello2')->getElements();
+		$result = count($divs);
+		$good = 2;
+		$this->equ($result, $good, 'pre-test #3' . PHP_EOL . htmlentities(print_r($divs, true)));
+		
+		
+		$x = new XNode('<div class="hello2">
+						  <span>1</span>
+						</div>
+						  <div class="hello2">
+							
+						</div>');
+		$divs = $x->find('div.hello2')->getElements();
+		$result = count($divs);
+		$good = 2;
+		$this->equ($result, $good, 'pre-test #4' . PHP_EOL . htmlentities(print_r($divs, true)));
+		
+		
+		
+		$x = new XNode('<div class="hello2">
+						  <span>1</span>
+						</div>
+						  <div class="hello2">
+							<div class="hello2">
+							  2
+							</div>
+						</div>');
+		$divs = $x->find('div.hello2')->getElements();
+		$result = count($divs);
+		$good = 3;
+		$this->equ($result, $good, 'pre-test #5');
+		
+
+		
+		
+		$x = new XNode('<div class="hello2">
+							<div class="hello2">
+							  2
+							</div>
+						</div>
+						<div class="hello2">
+						  <span>1</span>
+						</div>');
+		$divs = $x->find('div.hello2')->getElements();
+		$result = count($divs);
+		$good = 3;
+		$this->equ($result, $good, 'pre-test #6' . PHP_EOL . htmlentities(print_r($divs, true)));		
+		
+		
+		$x = new XNode(
+		'<html>
+			<head>
+				<title>Test page</title>
+			</head>
+			<body>
+						<div class="hello2">
+						  <span>1</span>
+						</div>
+						  <div class="hello2">
+							<div class="hello2">
+							  2
+							</div>
+						</div>
+			</body>
+		</html>');
+
+		$spans = $x->find('div.hello2')->getElements();
+		$result = count($spans);
+		$good = 3;
+		$this->equ($result, $good, '@debug it...');
 	}
 	
 	public function test4() {
