@@ -139,10 +139,10 @@ class XNode {
 
 				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
 				if(preg_match($regex, $this->__xhtml, $matches)) {
-				if(self::isValidClosure($matches[0], true)) {
-					if($one) return [$matches[0]];
-					if(!in_array($matches[0], $founds)) {
-						$founds[] = $matches[0];
+					if(self::isValidClosure($matches[0], true)) {
+						if($one) return [$matches[0]];
+						if(!in_array($matches[0], $founds)) {
+							$founds[] = $matches[0];
 						}
 					}
 				}
@@ -151,12 +151,12 @@ class XNode {
 
 					$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
 					if(preg_match($regex, $this->__xhtml, $matches)) {
-					// todo : duplicated code, separate this for an other function
-					if(self::isValidClosure($matches[0], true)) {
-						if(!in_array($matches[0], $founds)) {
-							if($one) return [$matches[0]];
+						// todo : duplicated code, separate this for an other function
+						if(self::isValidClosure($matches[0], true)) {
 							if(!in_array($matches[0], $founds)) {
-								$founds[] = $matches[0];
+								if($one) return [$matches[0]];
+								if(!in_array($matches[0], $founds)) {
+									$founds[] = $matches[0];
 								}
 							}
 						}
@@ -192,7 +192,7 @@ class XNode {
 		$simples = ['\!doctype', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
 		$_simples = implode('|', $simples);		
 		if($open = preg_match_all('/<\w+\b/i', $xhtml)) {
-			$simpleTags = preg_match_all('/' . $_simples . '/i', $xhtml);
+			$simpleTags = preg_match_all('/<(' . $_simples . ')\b/i', $xhtml);
 			$open -= $simpleTags;
 			$close = preg_match_all('/<\/\w+>/i', $xhtml);
 			if($open == $close && $open !== false) {
@@ -204,19 +204,21 @@ class XNode {
 					$limit = 100;
 					$end = count($matches[0])-1;
 					for($i=0; $i<$end; $i++) {
-						if($matches[0][$i][1] == '/') {
-							$deep--;
-						}
-						else {
-							$deep++;
-							$max = $deep;
-							if($max>$limit) {
-								throw new XParserException('Too deep DOM tree selection, maximum deep is ' . $limit. ', please change your query to a more definitely selector.');
-								//return false;
+						if(!self::isSimpleElement($matches[0][$i])) {
+							if($matches[0][$i][1] == '/') {
+								$deep--;
 							}
-						}
-						if($deep==0) {
-							return false;
+							else {
+								$deep++;
+								$max = $deep;
+								if($max>$limit) {
+									throw new XParserException('Too deep DOM tree selection, maximum deep is ' . $limit. ', please change your query to a more definitely selector.');
+									//return false;
+								}
+							}
+							if($deep==0) {
+								return false;
+							}
 						}
 					}
 					if($deep!=1) {
@@ -229,6 +231,12 @@ class XNode {
 			}
 		}
 		return false;
+	}
+	
+	private static function isSimpleElement($xhtml) {
+		// todo : use here and everywhere a self constant as imploded by '|' char...
+		$simples = ['\!doctype', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+		return preg_match('/^<(' . implode('|', $simples) . ')\b/', $xhtml);
 	}
 
 
