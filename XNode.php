@@ -106,16 +106,20 @@ class XNode {
 					$founds = $matches[0];
 					if($one && $founds) return [$founds[0]];
 				}
+				else {
 				
-				$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\/>/is';
-				preg_match_all($regex, $this->__xhtml, $matches);
-				$founds = $matches[0];
-				if($one && $founds) return [$founds[0]];
+					// todo : it's valid but not too propabilities do may it have to be the last check
+//					$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\/>/is';
+//					preg_match_all($regex, $this->__xhtml, $matches);
+//					$founds = $matches[0];
+//					if($one && $founds) return [$founds[0]];
 
-				$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\>.*<\/' . $tag . '>/is';
-				preg_match_all($regex, $this->__xhtml, $matches);
-				$founds = array_merge($founds, $matches[0]);
-				if($one && $founds) return [$founds[0]];
+					$regex = '/<' . $tag . '\b[^>]*[^>\/]*?\>.*<\/' . $tag . '>/is';
+					preg_match_all($regex, $this->__xhtml, $matches);
+					$founds = array_merge($founds, $matches[0]);
+					if($one && $founds) return [$founds[0]];
+
+				}
 			}
 			
 			if($simple) {
@@ -124,50 +128,77 @@ class XNode {
 				$founds = array_merge($founds, $matches[0]);
 				if($one && $founds) return [$founds[0]];				
 			}
+			else {
 
-			$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?\/>/is';
-			preg_match_all($regex, $this->__xhtml, $matches);
-			$founds = array_merge($founds, $matches[0]);
-			if($one && $founds) return [$founds[0]];
+				// todo : it's valid but not too propabilities do may it have to be the last check
+//				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?\/>/is';
+//				preg_match_all($regex, $this->__xhtml, $matches);
+//				$founds = array_merge($founds, $matches[0]);
+//				if($one && $founds) return [$founds[0]];
 
-			$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
-			preg_match_all($regex, $this->__xhtml, $matches);
-			foreach($matches[0] as $match) {
-				if(preg_match_all('/<' . $tag . '\b/', $match, $inmatch) == 1) {										
-					if($one && $founds) return [$match];
-					if(!in_array($match, $founds)) {
-						$founds[] = $match;
-					}
-				}
-			}
-
-			if(!$single) {
-				
-				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
-				preg_match_all($regex, $this->__xhtml, $matches);
-
-				$valids = array_keys($matches[0]);
-				
-				for($mkey=0; $mkey<count($matches[0]); $mkey++) {
-					if(in_array($mkey, $valids)) {
-						foreach ($founds as $found) {
-							if (strpos($matches[0][$mkey], $found) !== false) {
-								unset($valids[$mkey]);
-							}
+				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
+				if(preg_match($regex, $this->__xhtml, $matches)) {
+					if(self::isValidClosure($matches[0], true)) {
+						if($one) return [$matches[0]];
+						if(!in_array($matches[0], $founds)) {
+							$founds[] = $matches[0];
 						}
 					}
 				}
 
-				foreach($valids as $mkey) {
-					if($one && $founds) return $matches[0][$mkey];
-					$founds[] = $matches[0][$mkey];
+				if(!$single) {
+
+					$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
+					if(preg_match($regex, $this->__xhtml, $matches)) {
+						if(self::isValidClosure($matches[0], true)) {
+							if(!in_array($matches[0], $founds)) {
+								if($one) return [$matches[0]];
+								if(!in_array($matches[0], $founds)) {
+									$founds[] = $matches[0];
+								}
+							}
+						}
+
+						$x = new XNode(substr($matches[0], 1)); 
+						$founds = array_merge($founds, $x->getElementsArray($tag, $attr, $value, $one));
+						$x = new XNode(substr($matches[0], 0, -1)); 
+						$founds = array_merge($founds, $x->getElementsArray($tag, $attr, $value, $one));
+					}
+
 				}
-				
+			
 			}
 			
 		}
 
+		$founds = array_unique($founds);
 		return $founds;
+	}
+	
+	private function isValidClosure($xhtml, $onlyone = false) {
+		if($open = preg_match_all('/<\w+\b/i', $xhtml)) {
+			$close = preg_match_all('/<\/\w+>/i', $xhtml);
+			if($open == $close && $open !== false) {
+				
+				if($onlyone) {  // todo : may dont have to check for "only one needed" if every each case we'll need it
+					$all = preg_match_all('/(<\w+.*?>|<\/\w+>)/', $xhtml, $matches);
+					$deep = 0;
+					$end = count($matches[0])-1;
+					for($i=0; $i<$end; $i++) {
+						$matches[0][$i][1] == '/' ? $deep-- : $deep++;
+						if($deep==0) {
+							return false;
+						}
+					}
+					if($deep!=1) {
+						return false;
+					}
+				}
+						
+				return true;
+			}
+		}
+		return false;
 	}
 
 
