@@ -38,6 +38,7 @@ use gymadarasz\xparser\XParserException;
 class XParserTests extends MiniTestAbstract {
 	
 	public function run() {
+		//$this->phptest();
 		ini_set('xdebug.var_display_max_data', 10000);
 		$this->start('test6');
 		$this->start('test5');
@@ -45,6 +46,77 @@ class XParserTests extends MiniTestAbstract {
 		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	// remove it, just for optimizer strategy testing
+	private function phptest() {
+
+		$length = 100;
+		$variants = 10;
+		
+		$founds = [];
+		$start = microtime(true);
+		for($i=0; $i<1000; $i++) {
+			$news = [];
+			for($j=0; $j<rand(0,$length); $j++) {
+				$news[] = rand(1,$variants);
+			}
+			
+			$founds = array_merge($founds, $news);
+			
+//			foreach($news as $new) {
+//				if(!in_array($new, $founds)) {
+//					$founds[] = $new;
+//				}
+//			}
+
+		}
+		$founds = array_unique($founds);
+		var_dump(microtime(true)-$start);
+		echo "[count:" . count($founds) . "]\n";
+		
+		$founds = [];
+		$start = microtime(true);
+		for($i=0; $i<1000; $i++) {
+			$news = [];
+			for($j=0; $j<rand(0,$length); $j++) {
+				$news[] = rand(1,$variants);
+			}
+			
+			//$founds = array_merge($founds, $news);
+			
+			foreach($news as $new) {
+				if(!in_array($new, $founds)) {
+					$founds[] = $new;
+				}
+			}
+
+		}
+		$founds = array_unique($founds);
+		var_dump(microtime(true)-$start);
+		echo "[count:" . count($founds) . "]\n";
+		
+		$founds = [];
+		$start = microtime(true);
+		for($i=0; $i<1000; $i++) {
+			$news = [];
+			for($j=0; $j<rand(0,$length); $j++) {
+				$news[] = rand(1,$variants);
+			}
+			
+			//$founds = array_merge($founds, $news);
+			
+			foreach($news as $new) {
+				//if(!in_array($new, $founds)) {
+					$founds[] = $new;
+				//}
+			}
+
+		}
+		$founds = array_unique($founds);
+		var_dump(microtime(true)-$start);
+		echo "[count:" . count($founds) . "]\n";
+				
 	}
 	
 	public function test6() {
@@ -247,6 +319,35 @@ HTML;
 		$good = 5;
 		$found = count($divs);
 		$this->equ($good, $found);
+		
+		
+		// more test for bench..
+		$results = [];
+
+		$html = new XNode($html);
+		$html->find('title')->inner('New Title');
+
+		$results[1] = $html->__toString();
+		$this->equ(strpos($results[1], 'New Title')!==false, true);
+
+		$tpl = new XNode(file_get_contents('tests/templated-retrospect/index.html'));
+		foreach($tpl('link') as $elem) {
+			$elem->href = '//localhost/xparser/tests/templated-retrospect/' . $elem->href;
+		}
+		foreach($tpl('img, script') as $elem) {
+			$elem->src = '//localhost/xparser/tests/templated-retrospect/' . $elem->src;
+		}
+		$results[2] = $tpl->__toString();		
+		
+		$links = count($tpl('link')->getElements());
+		$imgs = count($tpl('img')->getElements());
+		$scripts = count($tpl('script')->getElements());
+		$sum = $links+$imgs+$scripts;
+		
+		$pieces = count(explode('//localhost/xparser/tests/templated-retrospect/', $results[2]));
+		
+		$this->equ($sum, $pieces-1);
+		
 	}
 	
 	public function test5() {
