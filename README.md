@@ -82,6 +82,13 @@ When you can not know how many element will in your query incase I created a `ge
 $count = $xnode->getCount('div'); 
 ```
 
+
+#### Get parent element:
+```php
+$span = $x->find('span', 0);
+$parent = $span->getParent();
+```
+
 #### Other facilities
 
 ```php
