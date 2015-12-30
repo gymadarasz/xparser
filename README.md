@@ -134,5 +134,9 @@ $x->outer('It\'ll replace the element!');
 
 ```
 
+#### Symfony CSS-Selector implemented:
+
+If you want to use more css selection in your queries more option e.g. '>' child selection and 'nth-child' or selection by attribute etc. it's possible via Symfony CSS-Selector DOMDocument and XPath.
+
 Note:
 My goal is not to make a better CSS selection than e.g symphony. I want to make a realy fast html reader and/or manipulator lib for php, the css selection is just an 'extra' in this lib. If you have any idea how it will better please [leave an issue](https://github.com/gymadarasz/xparser/issues/new) on github.
