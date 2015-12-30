@@ -58,6 +58,20 @@ foreach($x('div.hello') as $index => $hellodiv) {
 echo $x;
 ```
 
+#### validation
+The validation is not too quick process and you don't have to use it every single html loading and parsing but if you aren't sure that your html is valid, you can check it before use:
+
+```php
+if($x->validate()) {
+  // ..do something here
+  $x->find('.hello2')->outer();
+}
+else {
+  // your html contains an invalid closure structure
+  die('Invalid document!');
+}
+```
+
 #### Note: Be carefull!
 Technically when you make a query which try to find something recursion in html struct the regex search time exponentially improve but If you try to find an exact element it seem to be very fast. So this lib fast incase if you know which is the element (or a few of elements) what you looking for and these elements aren't too deep in DOM tree in recursion. 
 (It sould be fix in next version.)
@@ -66,6 +80,13 @@ When you can not know how many element will in your query incase I created a `ge
 ```php
 // it will be return how many <div> element are in your xhtml
 $count = $xnode->getCount('div'); 
+```
+
+
+#### Get parent element:
+```php
+$span = $x->find('span', 0);
+$parent = $span->getParent();
 ```
 
 #### Other facilities
