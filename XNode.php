@@ -375,7 +375,7 @@ class XNode {
 		return html_entity_decode($innerHTML); 
 	} 
 	
-	private function findViaSimfony($select) {
+	private function findViaSymfony($select) {
 		$ret = new XNodeList([], $this);
 		$document = new DOMDocument();
 		$document->loadHTML($this->__xhtml);
@@ -411,7 +411,7 @@ class XNode {
 		$selects = preg_split('/\s*,\s*/', $select);
 		foreach($selects as $select) {
 			if(!preg_match('/^[\.\#\w\s]+$/is', $select)){
-				return $this->findViaSimfony($select);
+				return $this->findViaSymfony($select);
 				break;
 			}
 			$words = preg_split('/\s+/', trim($select));
