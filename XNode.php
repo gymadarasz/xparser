@@ -103,14 +103,14 @@ class XNode {
 		
 		if($id && $classes) {
 			return
-				preg_match("/<" . $tag . "[^>]*\bclass\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"[^>]*\bid\s*=\s*\"$id\"/is", $this->__xhtml) ||
-				preg_match("/<" . $tag . "[^>]*\bid\s*=\s*\"$id\"[^>]*\bclass\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"/is", $this->__xhtml);
+				preg_match("/<" . $tag . "[^>]*([^-]\b)class\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"[^>]*\bid\s*=\s*\"$id\"/is", $this->__xhtml) ||
+				preg_match("/<" . $tag . "[^>]*\bid\s*=\s*\"$id\"[^>]*([^-]\b)class\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"/is", $this->__xhtml);
 		}
 		else if($id && !$classes) {
 			return preg_match("/<" . $tag . "[^>]*\bid\s*=\s*\"$id\"/is", $this->__xhtml);
 		}
 		else if(!$id && $classes) {
-			return preg_match_all("/<" . $tag. "[^>]*\bclass\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"/is", $this->__xhtml);
+			return preg_match_all("/<" . $tag. "[^>]*([^-]\b)class\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"/is", $this->__xhtml);
 		}
 		else if(!$id && !$classes) {
 			return preg_match_all("/<$tag\b/is", $this->__xhtml);
@@ -197,7 +197,7 @@ class XNode {
 			}
 			
 			if($simple) {
-				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>/is';
+				$regex = '/<' . $tag . '\b[^>]*([^-]\b)' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>/is';
 				if($one && preg_match($regex, $this->__html, $match)) {
 					return $match;
 				}
@@ -212,7 +212,7 @@ class XNode {
 //				$founds = array_merge($founds, $matches[0]);
 //				if($one && $founds) return [$founds[0]];
 
-				$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
+				$regex = '/<' . $tag . '\b[^>]*([^-]\b)' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>.*?<\/' . $tag . '>/is';
 				if(preg_match($regex, $this->__xhtml, $matches)) {
 					if(self::isValidClosure($matches[0], true)) {
 						if(!in_array($matches[0], $founds)) {
@@ -224,7 +224,7 @@ class XNode {
 
 				if(!$single) {
 
-					$regex = '/<' . $tag . '\b[^>]*\b' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
+					$regex = '/<' . $tag . '\b[^>]*([^-]\b)' . $attr . '\b\s*?=\s*?"' . $value . '"[^>\/]*?>(\R|.*?<\/' . $tag . '>).*<\/' . $tag . '>/is';
 					if(preg_match($regex, $this->__xhtml, $matches)) {
 						// todo : duplicated code, separate this for an other function
 						if(self::isValidClosure($matches[0], true)) {

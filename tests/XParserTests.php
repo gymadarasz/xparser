@@ -40,6 +40,7 @@ class XParserTests extends MiniTestAbstract {
 	public function run() {
 		//$this->phptest();
 		ini_set('xdebug.var_display_max_data', 10000);
+		$this->start('test7');
 		$this->start('parent1');
 		$this->start('test6');
 		$this->start('test5');
@@ -47,6 +48,52 @@ class XParserTests extends MiniTestAbstract {
 		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	protected function test7() {
+		$x = new XNode(
+		'<html>
+			<head>
+				<title>Test page</title>
+			</head>
+			<body>
+				  <div onch-class="toto">
+				  </div>
+			</body>
+		</html>');
+
+		$this->equ($x->getCount('.toto'), 0);
+		$this->equ($x->find('.toto')->outer(), false);
+		
+
+		$x = new XNode(
+		'<html>
+			<head>
+				<title>Test page</title>
+			</head>
+			<body>
+				  <div class-eh="toto">
+				  </div>
+			</body>
+		</html>');		
+
+		$this->equ($x->getCount('.toto'), 0);
+		$this->equ($x->find('.toto')->outer(), false);		
+		
+		
+		$x = new XNode(
+		'<html>
+			<head>
+				<title>Test page</title>
+			</head>
+			<body>
+				  <div onch-class-eh="toto">
+				  </div>
+			</body>
+		</html>');
+
+		$this->equ($x->getCount('.toto'), 0);
+		$this->equ($x->find('.toto')->outer(), false);		
 	}
 	
 	protected function parent1() {
