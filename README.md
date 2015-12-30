@@ -58,6 +58,15 @@ foreach($x('div.hello') as $index => $hellodiv) {
 echo $x;
 ```
 
+#### Note: Be carefull!
+Technically when you make a query which try to find something recursion in html struct the regex search time exponentially improve but If you try to find an exact element it seem to be very fast. So this lib fast incase if you know which is the element (or a few of ements) what do you looking for and these elements aren't too deep in DOM tree.
+When you can not know how many element will in your query incase I created a `getCount` function which relatively fast and give you how much element are in your selection:
+
+```php
+// it will be return how many <div> element are in your xhtml
+$count = $xnode->getCount('div'); 
+```
+
 #### Other facilities
 
 ```php
