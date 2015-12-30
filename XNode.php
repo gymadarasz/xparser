@@ -137,7 +137,7 @@ class XNode {
 		return $this->getElementsArray($tag, $attr, $value, true);
 	}
 	
-	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false, $deep = 0) {
+	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false, &$deep = 0) {
 		$deep++;
 		$max = self::$maxResultsPerStartegy; // todo: measure the correction
 		$maxDeep = self::$maxRecursionInStartegy;
@@ -269,6 +269,7 @@ class XNode {
 			
 		}
 
+		$deep--;
 		// TODO : may array_merge or array_unique function not necessary...
 		$founds = array_unique($founds);
 		return $founds;
