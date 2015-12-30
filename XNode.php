@@ -69,7 +69,30 @@ class XNode {
 		}
 	}
 
-
+	private function getParentXHtml() {
+		if(!$this->__source) {
+			throw new XParserException('You tried to get parent element but requested element has not parent node.');
+		}		
+		$regex = '/<\w+\b.*>.*' . addcslashes($this->__xhtml, '()[]{}+*.^$-|?!,\\/') . '.*<\/\w+>/is';
+		$count = preg_match_all($regex, $this->__source->__xhtml, $matches);
+		if($count===false) {
+			throw new XParserException('PCRE regex error: ' . preg_last_error());
+		}
+		if($count==0) {
+			throw new XParserException('Parent not found.');
+		}
+		if($count>1) {
+			throw new XParserException('Ambiguous parent.');
+		}
+		return $matches[0][0];
+	}
+	
+	public function getParent() {
+		$xhtml = $this->getParentXHtml();
+		$xnode = new XNode($xhtml, $this->__source->__source ? $this->__source->__source : $this->__source);
+		return $xnode;
+	}
+	
 	private function getPossibleTags() {
 		// todo : order the result by occurrence rate for more performance!
 		preg_match_all('/<(\w+)\b/si', $this->__xhtml, $matches);

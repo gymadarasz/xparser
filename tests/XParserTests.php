@@ -40,6 +40,7 @@ class XParserTests extends MiniTestAbstract {
 	public function run() {
 		//$this->phptest();
 		ini_set('xdebug.var_display_max_data', 10000);
+		$this->start('parent1');
 		$this->start('test6');
 		$this->start('test5');
 		$this->start('test4');
@@ -47,6 +48,15 @@ class XParserTests extends MiniTestAbstract {
 		$this->start('test2');
 		$this->start('mainTest');
 	}
+	
+	protected function parent1() {
+		$x = new XNode('start of node <div> in parent before span <span> in span </span> after the span </div> end of node');
+		$span = $x->find('span', 0);
+		$parent = $span->getParent();
+		$result = $parent->outer();
+		$good = '<div> in parent before span <span> in span </span> after the span </div>';
+		$this->equ($result, $good);
+	}	
 	
 	// remove it, just for optimizer strategy testing
 	private function phptest() {
