@@ -40,6 +40,7 @@ class XParserTests extends MiniTestAbstract {
 	public function run() {
 		//$this->phptest();
 		ini_set('xdebug.var_display_max_data', 10000);
+		$this->start('select1');
 		$this->start('validation1');
 		$this->start('test7');
 		$this->start('parent1');
@@ -49,6 +50,41 @@ class XParserTests extends MiniTestAbstract {
 		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	protected function select1() {
+		$x = new XNode(
+'<html>
+    <head>
+        <title>Test page</title>
+    </head>
+    <body>
+                <div id="hello1" class="message">
+                    <div id="sub1">
+                      <span>
+                        ho
+                      </span>
+                    </div>
+                </div>
+    </body>
+</html>');
+		
+		
+        $result = $x->find('#hello1 > span')->inner();
+		$good = [];
+		$this->equ($result, $good);
+
+        $result = $x->find('#sub1 > span')->inner();
+		$good = '
+                        ho
+                      ';
+		$this->equ($result, $good);
+		
+        $result = $x->find('#sub1 > span')->outer();
+		$good = '<span>
+                        ho
+                      </span>';
+		$this->equ($result, $good);
 	}
 	
 	protected function validation1() {
@@ -642,9 +678,7 @@ $x = new XNode(
     </body>
 </html>');
 
-		$good = '
-                        ho
-                      ';
+		$good = [];
         $inner = $x->find('#hello1 > span')->inner();
 
 		$this->equ($good, $inner);

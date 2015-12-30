@@ -2,6 +2,11 @@
 
 namespace gymadarasz\xparser;
 
+use DOMDocument;
+use DOMNode;
+use DOMXPath;
+use Symfony\Component\CssSelector\CssSelectorConverter;
+
 class XNode {
 	
 	private $__xhtml = null;
@@ -359,11 +364,56 @@ class XNode {
 		}
 		
 	}
+	
+	private function getInnerHTML(DOMNode $node ) { 
+		$innerHTML= ''; 
+		$children = $node->childNodes; 
+		foreach ($children as $child) { 
+			$innerHTML .= $child->ownerDocument->saveXML( $child ); 
+		} 
+
+		return html_entity_decode($innerHTML); 
+	} 
+	
+	private function findViaSimfony($select) {
+		$ret = new XNodeList([], $this);
+		$document = new DOMDocument();
+		$document->loadHTML($this->__xhtml);
+		$converter = new CssSelectorConverter();
+		$xpath = new DOMXPath($document);
+		$elems = $xpath->query($converter->toXPath($select));		
+		foreach($elems as $elem) {
+			$tag = $elem->nodeName;
+			$id = $elem->getAttribute('id');
+			$class = $elem->getAttribute('class');
+			$parentHtml = $this->getInnerHTML($elem->parentNode);
+			$parentXNode = new XNode($parentHtml);
+			$_select = '';
+			if($tag) {
+				$_select .= $tag;
+			}
+			if($id) {
+				$_select .= '#' . $id;
+			}
+			if($class) {
+				$_select .= '.' . preg_replace('/\s+/', '.', $class);
+			}
+			if($parentXNode->getCount($_select) != 1) {
+				throw new XParserException('ambigouos xpath selection: ' . $select);
+			}
+			$ret->addElement(new XNode($parentXNode->find($_select, 0)->outer(), $this));
+		}
+		return $ret;
+	}
 
 	public function find($select, $index = null) {
 		$ret = new XNodeList([], $this);
 		$selects = preg_split('/\s*,\s*/', $select);
 		foreach($selects as $select) {
+			if(!preg_match('/^[\.\#\w\s]+$/is', $select)){
+				return $this->findViaSimfony($select);
+				break;
+			}
 			$words = preg_split('/\s+/', trim($select));
 			$founds = [];
 			foreach($words as $wkey => $word) {
