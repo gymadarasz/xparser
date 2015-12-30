@@ -40,6 +40,7 @@ class XParserTests extends MiniTestAbstract {
 	public function run() {
 		//$this->phptest();
 		ini_set('xdebug.var_display_max_data', 10000);
+		$this->start('validation1');
 		$this->start('test7');
 		$this->start('parent1');
 		$this->start('test6');
@@ -48,6 +49,35 @@ class XParserTests extends MiniTestAbstract {
 		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	protected function validation1() {
+		$x = new XNode(
+		'<html>
+			<head>
+				<title>Test page</title>
+			</head>
+			<body>
+						<div class="hello2">
+			</body>
+		</html>');
+
+		$this->equ($x->validate(), false);
+		
+		
+		$x = new XNode(
+		'<html>
+			<head>
+				<title>Test page</title>
+			</head>
+			<body>
+						<div class="hello2">
+						</div>
+			</body>
+		</html>');
+
+		$this->equ($x->validate(), true);
+		
 	}
 	
 	protected function test7() {

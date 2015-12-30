@@ -508,5 +508,9 @@ class XNode {
 	public function __invoke($select, $index = null) {
 		return $this->find($select, $index);
 	}
+	
+	public function validate() {
+		return self::isValidClosure($this->__xhtml);
+	}
 
 }
