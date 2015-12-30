@@ -328,6 +328,8 @@ HTML;
 		$divs = $x->find('div.inner')->getElements();
 		$good = 5;
 		$found = count($divs);
+		$divsCnt = $x->getCount('div.inner');
+		$this->equ($divsCnt, $found);
 		$this->equ($good, $found);
 		
 		
@@ -354,6 +356,13 @@ HTML;
 		$scripts = count($tpl('script')->getElements());
 		$sum = $links+$imgs+$scripts;
 		
+		$linksCnt = $tpl->getCount('link');
+		$imgsCnt = $tpl->getCount('img');
+		$scriptsCnt = $tpl->getCount('script');		
+		$this->equ($linksCnt, $links);
+		$this->equ($imgsCnt, $imgs);
+		$this->equ($scriptsCnt, $scripts);
+		
 		$pieces = count(explode('//localhost/xparser/tests/templated-retrospect/', $results[2]));
 		
 		$this->equ($sum, $pieces-1);
@@ -370,6 +379,9 @@ HTML;
 		$good = 1;
 		$this->equ($result, $good, 'pre-test #1');
 		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
+		
 		
 		$x = new XNode('
 						  <div class="hello2">
@@ -379,6 +391,9 @@ HTML;
 		$result = count($divs);
 		$good = 1;
 		$this->equ($result, $good, 'pre-test #2');
+		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
 		
 		
 		$x = new XNode('
@@ -392,6 +407,9 @@ HTML;
 		$good = 2;
 		$this->equ($result, $good, 'pre-test #3' . PHP_EOL . htmlentities(print_r($divs, true)));
 		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
+		
 		
 		$x = new XNode('<div class="hello2">
 						  <span>1</span>
@@ -403,6 +421,9 @@ HTML;
 		$result = count($divs);
 		$good = 2;
 		$this->equ($result, $good, 'pre-test #4' . PHP_EOL . htmlentities(print_r($divs, true)));
+		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
 		
 		
 		
@@ -419,6 +440,9 @@ HTML;
 		$good = 3;
 		$this->equ($result, $good, 'pre-test #5');
 		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
+		
 
 		
 		
@@ -434,6 +458,9 @@ HTML;
 		$result = count($divs);
 		$good = 3;
 		$this->equ($result, $good, 'pre-test #6' . PHP_EOL . htmlentities(print_r($divs, true)));		
+		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
 		
 		
 		$x = new XNode(
@@ -457,6 +484,9 @@ HTML;
 		$result = count($spans);
 		$good = 3;
 		$this->equ($result, $good, '@debug it...');
+		
+		$divsCnt = $x->getCount('div.hello2');
+		$this->equ($divsCnt, $result);
 	}
 	
 	public function test4() {
@@ -465,6 +495,8 @@ HTML;
                 ');
 		$divs = $x->find('div');
 		$this->equ(count($divs), 1);
+				
+		$this->equ($x->getCount('div'), count($divs));
 		
 		
 		$x = new XNode(
@@ -512,6 +544,8 @@ HTML;
 		$this->equ($hello2OuterGood, $hello2Outer);
 		$this->equ($hello2Outer, $hello1InnerTrimmed);
 		$this->equ($hello1DivOuter, $hello2Outer);
+		
+		$this->equ($x->find('.hello2', 0)->getParent()->outer(), $x->find('#hello1')->outer());
 	}
 	
 	public function test3() {
@@ -618,6 +652,8 @@ ho
 		$this->equ(count($tpl('#hello02')->getElements()), 0);
 		$after = $tpl->outer();
 		$this->equ($before, $after);
+		
+		$this->equ(count($tpl('#hello02')->getElements()), $tpl->getCount('#hello02'));
 		
 	}
 	

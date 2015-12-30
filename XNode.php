@@ -72,8 +72,8 @@ class XNode {
 	private function getParentXHtml() {
 		if(!$this->__source) {
 			throw new XParserException('You tried to get parent element but requested element has not parent node.');
-		}		
-		$regex = '/<\w+\b.*>.*' . addcslashes($this->__xhtml, '()[]{}+*.^$-|?!,\\/') . '.*<\/\w+>/is';
+		}
+		$regex = '/<\w+[^<]*' . addcslashes($this->__xhtml, '()[]{}+*.^$-|?!,\\/') . '[^>]*<\/\w+>/';
 		$count = preg_match_all($regex, $this->__source->__xhtml, $matches);
 		if($count===false) {
 			throw new XParserException('PCRE regex error: ' . preg_last_error());
@@ -93,6 +93,31 @@ class XNode {
 		return $xnode;
 	}
 	
+	public function getCount($select) {
+		self::parseSelectorWord($select, $tag, $id, $classes);			
+		
+		if(!$tag) $tag = '\w+\b';
+		if($classes) {
+			$_classes = implode('|', $classes);
+		}
+		
+		if($id && $classes) {
+			return
+				preg_match("/<" . $tag . "[^>]*\bclass\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"[^>]*\bid\s*=\s*\"$id\"/is", $this->__xhtml) ||
+				preg_match("/<" . $tag . "[^>]*\bid\s*=\s*\"$id\"[^>]*\bclass\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"/is", $this->__xhtml);
+		}
+		else if($id && !$classes) {
+			return preg_match("/<" . $tag . "[^>]*\bid\s*=\s*\"$id\"/is", $this->__xhtml);
+		}
+		else if(!$id && $classes) {
+			return preg_match_all("/<" . $tag. "[^>]*\bclass\s*=\s*\"[\s\w]*\b($_classes)\b[\s\w]*\"/is", $this->__xhtml);
+		}
+		else if(!$id && !$classes) {
+			return preg_match_all("/<$tag\b/is", $this->__xhtml);
+		}
+		throw new XParserException('incorrect selection: ' . $select);
+	}
+	
 	private function getPossibleTags() {
 		// todo : order the result by occurrence rate for more performance!
 		preg_match_all('/<(\w+)\b/si', $this->__xhtml, $matches);
@@ -105,7 +130,7 @@ class XNode {
 	
 	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false) {
 	
-		$max = 20; // todo: measure the correction
+		$max = 10; // todo: measure the correction
 		$founds = [];
 		
 		if(is_null($tag)) {
@@ -148,7 +173,26 @@ class XNode {
 						return $match;
 					}
 					preg_match_all($regex, $this->__xhtml, $matches);
-					$founds = array_merge($founds, $matches[0]);
+					foreach($matches[0] as $match) {
+						if(!in_array($match, $founds) && self::isValidClosure($match, true)) {
+							$founds[] = $match;
+						}
+						else {
+							$x = new XNode(substr($match, 1));
+							$more = $x->getElementsArray($tag, $attr, $value, $one);
+							$founds = array_merge($founds, $more);
+							if(count($founds) >= $max) {
+								throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
+							}
+
+							$x = new XNode(substr($match, 0, -1));
+							$more = $x->getElementsArray($tag, $attr, $value, $one);
+							$founds = array_merge($founds, $more);
+							if(count($founds) >= $max) {
+								throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
+							}							
+						}
+					}
 				}
 			}
 			
@@ -291,6 +335,30 @@ class XNode {
 	public function getElementsByClass($class) {
 		return new XNodeList($this->getElementsByClassArray($class), $this);
 	}	
+	
+	private static function parseSelectorWord($word, &$tag, &$id, &$classes = []) {
+		preg_match_all('/([\.\#]?)(\w+)|()(\w+)/is', $word, $parse);
+		$tag = null;
+		$ids = null;
+		$classes = [];
+		foreach($parse[1] as $key => $type) {
+			switch($type) {
+				case '':
+					$tag = $parse[2][$key];
+				break;
+				case '#':
+					$id = $parse[2][$key];
+				break;
+				case '.':
+					$classes[] = $parse[2][$key];
+				break;
+				default:
+					throw new XParserException('Invalid CSS selector: ' . $select);
+				break;
+			}
+		}
+		
+	}
 
 	public function find($select, $index = null) {
 		$ret = new XNodeList([], $this);
@@ -299,36 +367,17 @@ class XNode {
 			$words = preg_split('/\s+/', trim($select));
 			$founds = [];
 			foreach($words as $wkey => $word) {
-				preg_match_all('/([\.\#]?)(\w+)|()(\w+)/is', $word, $parse);
-				$tag = null;
-				$ids = [];
-				$classes = [];
-				foreach($parse[1] as $key => $type) {
-					switch($type) {
-						case '':
-							$tag = $parse[2][$key];
-						break;
-						case '#':
-							$ids[] = $parse[2][$key];
-						break;
-						case '.':
-							$classes[] = $parse[2][$key];
-						break;
-						default:
-							throw new XParserException('Invalid CSS selector: ' . $select);
-						break;
-					}
-				}
+				self::parseSelectorWord($word, $tag, $id, $classes);
 
-				if(!$ids && !$classes) {
+				if(!$id && !$classes) {
 					$founds = $this->getElementsArray($tag);
 				}
-				else if($ids && !$classes) {
-					foreach($ids as $id) {
+				else if($id && !$classes) {
+					//foreach($ids as $id) {
 						$founds = array_merge($founds, $this->getElementsArray($tag, 'id', $id));
-					}
+					//}
 				}
-				else if(!$ids && $classes) {					
+				else if(!$id && $classes) {					
 					foreach($classes as $class) {
 						$foundsByClass[$class] = $this->getElementsByTagAndClassArray($tag, $class);
 					}				
@@ -340,11 +389,11 @@ class XNode {
 					}
 					
 				}
-				else if($ids && $classes) {				
+				else if($id && $classes) {				
 					$foundsById = [];
-					foreach($ids as $id) {
+					//foreach($ids as $id) {
 						$foundsById = array_merge($foundsById, $this->getElementsArray($tag, 'id', $id));
-					}
+					//}
 					$foundsByClass = [];
 					foreach($classes as $class) {				
 						$foundsByClass = array_merge($foundsByClass, $this->getElementsByClassArray($class));
