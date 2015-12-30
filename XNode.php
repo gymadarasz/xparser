@@ -9,6 +9,10 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class XNode {
 	
+	private static $maxResultsPerStartegy = 10;
+	
+	private static $maxRecursionInStartegy = 8;
+	
 	private $__xhtml = null;
 	
 	private $__source = null;
@@ -133,14 +137,18 @@ class XNode {
 		return $this->getElementsArray($tag, $attr, $value, true);
 	}
 	
-	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false) {
-	
-		$max = 10; // todo: measure the correction
+	private function getElementsArray($tag = null, $attr = '\w*', $value = '\w*', $one = false, $deep = 0) {
+		$deep++;
+		$max = self::$maxResultsPerStartegy; // todo: measure the correction
+		$maxDeep = self::$maxRecursionInStartegy;
+		if($deep>$maxDeep) {
+			throw new XParserException('Recursion detected in dom tree.');
+		}
 		$founds = [];
 		
 		if(is_null($tag)) {
 			foreach($this->getPossibleTags() as $tag) {
-				$elems = $this->getElementsArray($tag, $attr, $value, $one);
+				$elems = $this->getElementsArray($tag, $attr, $value, $one, $deep);
 				foreach($elems as $elem) {
 					$founds[] = $elem;
 				}
@@ -182,20 +190,20 @@ class XNode {
 						if(!in_array($match, $founds) && self::isValidClosure($match, true)) {
 							$founds[] = $match;
 						}
-						else {
+						else {							
 							$x = new XNode(substr($match, 1));
-							$more = $x->getElementsArray($tag, $attr, $value, $one);
+							$more = $x->getElementsArray($tag, $attr, $value, $one, $deep);
 							$founds = array_merge($founds, $more);
 							if(count($founds) >= $max) {
 								throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
 							}
 
 							$x = new XNode(substr($match, 0, -1));
-							$more = $x->getElementsArray($tag, $attr, $value, $one);
+							$more = $x->getElementsArray($tag, $attr, $value, $one, $deep);
 							$founds = array_merge($founds, $more);
 							if(count($founds) >= $max) {
 								throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
-							}							
+							}
 						}
 					}
 				}
@@ -234,20 +242,20 @@ class XNode {
 						// todo : duplicated code, separate this for an other function
 						if(self::isValidClosure($matches[0], true)) {
 							if(!in_array($matches[0], $founds)) {
-							if($one) return [$matches[0]];
+								if($one) return [$matches[0]];
 								$founds[] = $matches[0];
 							}
 						}
 
 						$x = new XNode(substr($matches[0], 1));
-						$more = $x->getElementsArray($tag, $attr, $value, $one);
+						$more = $x->getElementsArray($tag, $attr, $value, $one, $deep);
 						$founds = array_merge($founds, $more);
 						if(count($founds) >= $max) {
 							throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
 						}
 
 						$x = new XNode(substr($matches[0], 0, -1));
-						$more = $x->getElementsArray($tag, $attr, $value, $one);
+						$more = $x->getElementsArray($tag, $attr, $value, $one, $deep);
 						$founds = array_merge($founds, $more);
 						if(count($founds) >= $max) {
 							throw new XParserException('Too many element found, searching limit is ' . $max . ', please change your query to a more definitely selector.');
@@ -261,12 +269,12 @@ class XNode {
 			
 		}
 
-		// may array_merge function not necessary...
+		// TODO : may array_merge or array_unique function not necessary...
 		$founds = array_unique($founds);
 		return $founds;
 	}
 	
-	private static function isValidClosure($xhtml, $onlyone = false) {
+	private static function isValidClosure($xhtml, $onlyone = false, $limit = 100) {
 		$simples = '\!doctype|area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr';
 		if($open = preg_match_all('/<\w+\b/i', $xhtml)) {
 			$simpleTags = preg_match_all('/<(' . $simples . ')\b/i', $xhtml);
@@ -278,7 +286,6 @@ class XNode {
 					$all = preg_match_all('/(<\w+.*?>|<\/\w+>)/', $xhtml, $matches);
 					$deep = 0;
 					$max = 0;
-					$limit = 100;
 					$end = count($matches[0])-1;
 					for($i=0; $i<$end; $i++) {
 						if(!self::isSimpleElement($matches[0][$i])) {
@@ -375,45 +382,77 @@ class XNode {
 		return html_entity_decode($innerHTML); 
 	} 
 	
-	private function findViaSymfony($select) {
-		$ret = new XNodeList([], $this);
+	private function findViaXPath($select, $html = null) {
 		$document = new DOMDocument();
-		$document->loadHTML($this->__xhtml);
+		libxml_use_internal_errors(true);
+		$document->loadHTML(is_null($html) ? $this->__xhtml : $html);
 		$converter = new CssSelectorConverter();
 		$xpath = new DOMXPath($document);
-		$elems = $xpath->query($converter->toXPath($select));		
+		$elems = $xpath->query($converter->toXPath($select));
+		return $elems;
+	}
+	
+	private function getDOMNodeOuterHTML(DOMNode $elem) {		
+		$tag = $elem->nodeName;
+		$id = $elem->getAttribute('id');
+		$class = $elem->getAttribute('class');
+		$elemInnerHtml = $this->getInnerHtml($elem);
+		$parentInnerHtml = $this->getInnerHTML($elem->parentNode);
+		$parentXNode = new XNode($parentInnerHtml);
+		$select = '';
+		if($tag) {
+			$select .= $tag;
+		}
+		if($id) {
+			$select .= '#' . $id;
+		}
+		if($class) {
+			$select .= '.' . preg_replace('/\s+/', '.', $class);
+		}		
+		
+		$elemsCount = $parentXNode->getCount($select);
+		
+		if($elemsCount == 1) {
+			return $parentXNode($select, 0)->outer();
+		}
+		if($elemsCount > 1) {
+			$possibles = [];
+			foreach($parentXNode($select) as $_elem) {
+				if($_elem->inner() == $elemInnerHtml) {
+					$possibles[] = $_elem;
+				}
+			}
+			if(count($possibles) != 1) {
+				trigger_error('DOMNode parse error: ambiguous parent-child elements. (selected ' . count($possibles) . ' elements by "' . $select . '" query) ', E_USER_WARNING);
+			}
+			return $possibles[0]->outer();
+		}
+		if($elemsCount == 0) {
+			throw new XParserException('DOMNode parse error.');
+		}
+	}
+	
+	private function findViaSymfony($select, $index = null) {
+		$ret = new XNodeList([], $this);
+		$elems = $this->findViaXPath($select);
+		
 		foreach($elems as $elem) {
-			$tag = $elem->nodeName;
-			$id = $elem->getAttribute('id');
-			$class = $elem->getAttribute('class');
-			$parentHtml = $this->getInnerHTML($elem->parentNode);
-			$parentXNode = new XNode($parentHtml);
-			$_select = '';
-			if($tag) {
-				$_select .= $tag;
-			}
-			if($id) {
-				$_select .= '#' . $id;
-			}
-			if($class) {
-				$_select .= '.' . preg_replace('/\s+/', '.', $class);
-			}
-			if($parentXNode->getCount($_select) != 1) {
-				throw new XParserException('ambigouos xpath selection: ' . $select);
-			}
-			$ret->addElement(new XNode($parentXNode->find($_select, 0)->outer(), $this));
+			
+			$outer = $this->getDOMNodeOuterHTML($elem);
+			$newXNode = new XNode($outer);
+			$ret->addElement($newXNode);
+			
 		}
 		return $ret;
 	}
 
 	public function find($select, $index = null) {
 		$ret = new XNodeList([], $this);
+		if(!preg_match('/^[\.\#\w\s\,]+$/is', $select)){
+			return $this->findViaSymfony($select, $index);
+		}
 		$selects = preg_split('/\s*,\s*/', $select);
 		foreach($selects as $select) {
-			if(!preg_match('/^[\.\#\w\s]+$/is', $select)){
-				return $this->findViaSymfony($select);
-				break;
-			}
 			$words = preg_split('/\s+/', trim($select));
 			$founds = [];
 			foreach($words as $wkey => $word) {

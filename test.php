@@ -24,6 +24,6 @@
  * THE SOFTWARE.
  */
 
-include 'vendor/autoload.php';
+include 'c:\xampp2\htdocs\xparser-benchmark\vendor\autoload.php';
 
 new gymadarasz\xparser\tests\XParserTests();
