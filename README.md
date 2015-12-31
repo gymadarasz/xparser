@@ -27,7 +27,7 @@ or you like simple_html_dom or Ganon you will love this smart library!
 [2015-12-30 04:13:00] Memory peak:	4.25Mb	4456448
 ```
 and:
-- PHP 5.5
+- PHP 5.6
 - Composer & PSR-4 Support
 - Unit testing via Minitest
 - PHP-Quality testing via SensioLabsInsight
