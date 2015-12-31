@@ -76,9 +76,9 @@ class XNodeList implements \Iterator {
 		return $value;
 	}
 
-	public function __invoke(...$args) {
+	public function __invoke() {
 		foreach($this->getElements() as $element) {
-			$this->__elements($args);
+			$this->__elements(func_get_args());
 		}
 	}
 	
