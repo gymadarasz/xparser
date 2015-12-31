@@ -98,7 +98,7 @@ class XNode {
 	
 	public function getParent() {
 		$xhtml = $this->getParentXHtml();
-		$xnode = new XNode($xhtml, $this->__source->__source ? $this->__source->__source : $this->__source);
+		$xnode = new XNode($xhtml, $this->__source->__source ? &$this->__source->__source : &$this->__source);
 		return $xnode;
 	}
 	
