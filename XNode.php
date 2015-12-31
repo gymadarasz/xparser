@@ -350,7 +350,7 @@ class XNode {
 	}	
 	
 	private static function parseSelectorWord($word, &$tag, &$id, &$classes = []) {
-		preg_match_all('/([\.\#]?)(\w+)|()(\w+)/is', $word, $parse);
+		preg_match_all('/([\.\#]?)([\w-]+)|()([\w-]+)/is', $word, $parse);
 		$tag = null;
 		$ids = null;
 		$classes = [];
