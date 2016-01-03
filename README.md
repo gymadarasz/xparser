@@ -54,9 +54,16 @@ $x = new XNode(file_get_contents('http://your-important-document-or-template.com
 $x('a#your_link')->inner('Hello world')->href = 'http://your.hellopage.com';
 
 // or make a foreach on all elements
+
 foreach($x('div.hello') as $index => $hellodiv) {
   $hellodiv->inner('It is the ' . $index . 'th Hello DIV!');
 }
+
+// or just use jQuery style 'each' function, it's same
+
+$x('#nav a', function($elem) {
+  $elem->href = '//myurl/' . $elem->href;
+});
 
 // show document
 echo $x;
