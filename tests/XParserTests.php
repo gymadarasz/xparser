@@ -62,6 +62,16 @@ class XParserTests extends MiniTestAbstract {
 		$x->each('#nav a', function($elem) {
 			$this->equ(substr($elem->href, 0, strlen('//myurl/')), '//myurl/');
 		});
+		
+		
+		$x = new XNode(file_get_contents('tests/templated-retrospect/index.html'));
+		$x('#nav a', function($elem) {
+			$elem->href = '//myurl/' . $elem->href;
+		});
+		$x('#nav a', function($elem) {
+			$this->equ(substr($elem->href, 0, strlen('//myurl/')), '//myurl/');
+		});
+		
 	}
 	
 	protected function test8() {
