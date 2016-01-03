@@ -37,6 +37,10 @@ and:
 
 `$ composer require gymadarasz/xparser`
 
+### Or download latest version
+
+[xparser-0.3.1-dev.zip](http://madsoft.hu/xparser/download/xparser-0.3.1-dev.zip)
+
 ### Usage
 
 ```php
