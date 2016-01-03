@@ -67,7 +67,7 @@ class XNode {
 			if($this->__xhtml) {
 				return self::getInner($this->__xhtml);
 			}
-			trigger_error('XHTML Parse Error: A requested element has no inner text.', E_USER_NOTICE);
+			trigger_error('XHTML Parse Error: A requested element has not inner text.', E_USER_NOTICE);
 			return null;
 		}
 		else {
@@ -275,7 +275,7 @@ class XNode {
 		}
 
 		$deep--;
-		// TODO : may array_merge or array_unique function not necessary...
+		// TODO : may array_merge or array_unique function is not necessary...
 		$founds = array_unique($founds);
 		return $founds;
 	}
@@ -600,8 +600,11 @@ class XNode {
 		return $value;
 	}
 
-	public function __invoke($select, $index = null) {
-		return $this->find($select, $index);
+	public function __invoke($select, $indexOrFunc = null) {
+		if(is_null($indexOrFunc) || is_numeric($indexOrFunc)) {
+			return $this->find($select, $indexOrFunc);
+		}
+		$this->each($select, $indexOrFunc);
 	}
 	
 	public function validate() {
