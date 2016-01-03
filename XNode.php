@@ -29,7 +29,11 @@ class XNode {
 		// replace only first occurrence cause more than one are in parent then it have to be a list instead an element
 		$pos = strpos($this->__xhtml, $search);
 		if ($pos !== false) {
+			$__xhtml = $this->__xhtml;
 			$this->__xhtml = substr_replace($this->__xhtml, $replace, $pos, strlen($search));
+			if($this->__source) {
+				$this->__source->replace($__xhtml, $this->__xhtml);
+			}
 		}
 		return $this;
 	}
@@ -602,6 +606,13 @@ class XNode {
 	
 	public function validate() {
 		return self::isValidClosure($this->__xhtml);
+	}
+	
+	public function each($select, callable $callback) {
+		$elems = $this->find($select);
+		foreach($elems as $key => $elem) {
+			$callback($elems->getElement($key));
+		}
 	}
 
 }

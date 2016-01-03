@@ -19,7 +19,7 @@ class XNodeList implements \Iterator {
 		$this->__elements = $elements;
 	}
 
-	public function addElement(XNode $elem) {
+	public function addElement(XNode &$elem) {
 		$this->__elements[] = $elem;
 	}
 	

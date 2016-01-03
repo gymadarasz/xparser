@@ -40,7 +40,8 @@ class XParserTests extends MiniTestAbstract {
 	public function run() {
 		//$this->phptest();
 		ini_set('xdebug.var_display_max_data', 10000);
-		//$this->start('test8');
+		$this->start('eachtest');
+		$this->start('test8');
 		$this->start('select1');
 		$this->start('validation1');
 		$this->start('test7');
@@ -51,6 +52,16 @@ class XParserTests extends MiniTestAbstract {
 		$this->start('test3');
 		$this->start('test2');
 		$this->start('mainTest');
+	}
+	
+	protected function eachtest() {
+		$x = new XNode(file_get_contents('tests/templated-retrospect/index.html'));
+		$x->each('#nav a', function($elem) {
+			$elem->href = '//myurl/' . $elem->href;
+		});
+		$x->each('#nav a', function($elem) {
+			$this->equ(substr($elem->href, 0, strlen('//myurl/')), '//myurl/');
+		});
 	}
 	
 	protected function test8() {
