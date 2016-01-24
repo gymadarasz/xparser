@@ -9,7 +9,7 @@
 		}
 	},
 	"require": {
-		"gymadarasz/minitest": "dev-master",
+		"gymadarasz/minitest": "v1.0",
 		"symfony/css-selector": "^3.0"
 	}
 }
