@@ -1,6 +1,7 @@
 {
 	"name": "gymadarasz/xparser",
 	"description": "Fast XHTML DOM parser in PHP",
+	"minimum-stability": "dev",
 	"autoload": {
 		"psr-4": {
 			"gymadarasz\\xparser\\": "",
