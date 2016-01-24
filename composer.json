@@ -1,14 +1,13 @@
 {
 	"name": "gymadarasz/xparser",
 	"description": "Fast XHTML DOM parser in PHP",
-	"minimum-stability": "dev",
 	"autoload": {
 		"psr-4": {
 			"gymadarasz\\xparser\\": "",
 			"gymadarasz\\xparser\\tests\\": "tests"
 		}
 	},
-	"require-dev": {
+	"require": {
 		"gymadarasz/minitest": "dev-master",
 		"symfony/css-selector": "^3.0"
 	}
