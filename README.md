@@ -48,7 +48,7 @@ and:
 include 'vendor/autoload.php';
 
 // load a DOM root form a string or file/url
-$x = new XNode(file_get_contents('http://your-important-document-or-template.com'));
+$x = new gymadarasz\xparser\XNode(file_get_contents('http://your-important-document-or-template.com'));
 
 // select elements via simple CSS selector and read attributs or manipulate contents easily e.g.:
 $x('a#your_link')->inner('Hello world')->href = 'http://your.hellopage.com';
